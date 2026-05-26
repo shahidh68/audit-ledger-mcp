@@ -18,6 +18,7 @@
     "start": "node dist/index.js",
     "dev": "tsc --watch",
     "test": "node --test --import tsx tests/*.test.ts",
+    "integration-test": "tsx tests/integration.test.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

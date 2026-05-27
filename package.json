@@ -1,13 +1,13 @@
 {
   "name": "audit-ledger-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for AI Audit Ledger — record AI decisions to a tamper-evident ledger from any agent (Claude, Cursor, LangGraph, custom).",
   "type": "module",
   "bin": {
-    "audit-ledger-mcp": "./dist/index.js"
+    "audit-ledger-mcp": "dist/index.js"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md",

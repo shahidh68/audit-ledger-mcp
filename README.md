@@ -6,6 +6,14 @@ Built for teams shipping AI in regulated contexts: EU AI Act Article 12 logging,
 
 [![npm](https://img.shields.io/npm/v/audit-ledger-mcp.svg)](https://www.npmjs.com/package/audit-ledger-mcp) [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE) [![MCP](https://img.shields.io/badge/MCP-compatible-7c3aed.svg)](https://modelcontextprotocol.io)
 
+**[Try the live dashboard →](https://d2pfirb2397ixy.cloudfront.net/?demo=1)** &nbsp;&middot;&nbsp; 30 synthetic decisions written via this MCP server, queryable and verifiable.
+
+<p align="center">
+  <img src="./demo.gif" alt="LangGraph agents using audit-ledger-mcp — triage, risk, and human-in-the-loop each calling record_decision" />
+</p>
+
+> A LangGraph workflow calls `record_decision` after each agent step. Three audit events written to the live ledger; every one independently verifiable.
+
 ---
 
 ## What it does

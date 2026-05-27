@@ -11,6 +11,10 @@
  * since no tool can do anything useful without it.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -32,8 +36,15 @@ import {
   listDecisionsToolDefinition,
 } from "./tools/list_decisions.js";
 
-const PKG_NAME = "audit-ledger-mcp";
-const PKG_VERSION = "0.1.0";
+// Read package.json at startup so PKG_NAME and PKG_VERSION cannot drift from
+// the published package version. dist/index.js lives one level below the
+// package root, so package.json is at "../package.json" relative to here.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf8"),
+) as { name: string; version: string };
+const PKG_NAME = PKG.name;
+const PKG_VERSION = PKG.version;
 
 function requireEnv(name: string): string {
   const value = process.env[name];

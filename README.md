@@ -30,26 +30,63 @@ Each call ends up as a regulator-grade audit record in your deployed ledger — 
 
 ---
 
-## Install
-
-```bash
-npm install -g audit-ledger-mcp
-```
-
-Or run on demand without installing:
+## Quick start — zero configuration
 
 ```bash
 npx -y audit-ledger-mcp
 ```
 
+That's it. With no environment variables, the server boots into **sandbox mode** and writes records to a shared public tenant on a hosted ledger. You can try every tool — `record_decision`, `verify_decision`, `list_decisions` — without provisioning anything.
+
+When sandbox mode is active, you'll see a banner on stderr:
+
+```
+[audit-ledger-mcp] ─────────────── SANDBOX MODE ───────────────
+[audit-ledger-mcp] No AUDIT_API_URL configured.
+[audit-ledger-mcp] Using the public sandbox at sandbox-public.
+[audit-ledger-mcp]   View: https://d2pfirb2397ixy.cloudfront.net
+[audit-ledger-mcp] Do NOT write real personal data...
+```
+
+### Sandbox properties
+
+| | |
+|---|---|
+| **Hosted by** | github.com/shahidh68/audit-ledger (same AWS deployment) |
+| **Tenant** | `sandbox-public` (shared, public) |
+| **Rate limit** | 100 requests/minute per IP |
+| **Retention** | 7 years (records cannot be deleted) |
+| **Audience** | Tyre-kickers, integration tests, framework demos |
+| **NOT for** | Production data, customer PII, real compliance records |
+
+### Wire it into Claude Desktop with zero config
+
+```json
+{
+  "mcpServers": {
+    "audit-ledger-sandbox": {
+      "command": "npx",
+      "args": ["-y", "audit-ledger-mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The three tools appear in the MCP menu immediately. Try asking Claude to "record this decision: should X be approved?" and watch a record land in the sandbox dashboard.
+
 ---
 
-## Configure
+## Production install
 
-The server reads its configuration from environment variables. You need a deployed [AI Audit Ledger](https://github.com/shahidh68/audit-ledger) (or access to one) with at least one tenant write key and read key provisioned in Secrets Manager.
+For real workloads, deploy your own audit ledger and point the MCP server at it:
 
 ```bash
-# Required
+npm install -g audit-ledger-mcp
+```
+
+Configure with **all three** env vars (any of them being set switches off sandbox mode):
+
+```bash
 export AUDIT_API_URL="https://<api-id>.execute-api.<region>.amazonaws.com/prod"
 export AUDIT_WRITE_KEY="<your-tenant-write-key>"
 export AUDIT_READ_KEY="<your-tenant-read-key>"

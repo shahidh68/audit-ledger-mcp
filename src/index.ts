@@ -23,6 +23,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 import { AuditLedgerClient, AuditLedgerError } from "./client.js";
+import { SANDBOX_CONFIG, isSandboxMode, sandboxBanner } from "./sandbox.js";
 import {
   executeRecordDecision,
   recordDecisionToolDefinition,
@@ -46,22 +47,7 @@ const PKG = JSON.parse(
 const PKG_NAME = PKG.name;
 const PKG_VERSION = PKG.version;
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    process.stderr.write(
-      `[${PKG_NAME}] missing required env var: ${name}\n` +
-        `See .env.example or the README for required configuration.\n`,
-    );
-    process.exit(1);
-  }
-  return value;
-}
-
 function buildClient(): AuditLedgerClient {
-  const apiUrl = requireEnv("AUDIT_API_URL");
-  const writeKey = process.env.AUDIT_WRITE_KEY;
-  const readKey = process.env.AUDIT_READ_KEY;
   const timeoutMs = process.env.AUDIT_TIMEOUT_MS
     ? Number(process.env.AUDIT_TIMEOUT_MS)
     : undefined;
@@ -69,10 +55,30 @@ function buildClient(): AuditLedgerClient {
     ? Number(process.env.AUDIT_RETRY_ATTEMPTS)
     : undefined;
 
+  // Sandbox mode: no AUDIT_API_URL configured. Fall back to the public
+  // sandbox so the package works zero-config. Records go to a shared
+  // public tenant that anyone can read — do NOT write real data.
+  if (isSandboxMode()) {
+    process.stderr.write(sandboxBanner(PKG_NAME, PKG_VERSION) + "\n");
+    return new AuditLedgerClient({
+      apiUrl: SANDBOX_CONFIG.apiUrl,
+      writeKey: SANDBOX_CONFIG.writeKey,
+      readKey: SANDBOX_CONFIG.readKey,
+      timeoutMs,
+      retryAttempts,
+    });
+  }
+
+  // Production mode: developer has explicitly configured an endpoint.
+  const apiUrl = process.env.AUDIT_API_URL!;
+  const writeKey = process.env.AUDIT_WRITE_KEY;
+  const readKey = process.env.AUDIT_READ_KEY;
+
   if (!writeKey && !readKey) {
     process.stderr.write(
-      `[${PKG_NAME}] neither AUDIT_WRITE_KEY nor AUDIT_READ_KEY is set — ` +
-        `all tools will fail. Set at least one. See .env.example.\n`,
+      `[${PKG_NAME}] AUDIT_API_URL is set but neither AUDIT_WRITE_KEY nor\n` +
+        `[${PKG_NAME}] AUDIT_READ_KEY is set — all tools will fail. Set at\n` +
+        `[${PKG_NAME}] least one. See .env.example.\n`,
     );
   }
   return new AuditLedgerClient({ apiUrl, writeKey, readKey, timeoutMs, retryAttempts });

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.shahidh68/audit-ledger-mcp",
+  "description": "Record AI decisions to a tamper-evident audit ledger from any MCP-compatible agent.",
+  "repository": {
+    "url": "https://github.com/shahidh68/audit-ledger-mcp",
+    "source": "github"
+  },
+  "version": "0.2.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "audit-ledger-mcp",
+      "version": "0.2.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "AUDIT_API_URL",
+          "description": "Your deployed audit-ledger API endpoint (e.g. https://<api-id>.execute-api.<region>.amazonaws.com/prod). Leave unset to run in sandbox mode against the public shared tenant.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "AUDIT_WRITE_KEY",
+          "description": "Tenant write key for your deployed ledger. Required if AUDIT_API_URL is set and you want to call record_decision.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "AUDIT_READ_KEY",
+          "description": "Tenant read key for your deployed ledger. Required if AUDIT_API_URL is set and you want to call verify_decision or list_decisions.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "AUDIT_TIMEOUT_MS",
+          "description": "HTTP timeout in milliseconds. Defaults to 5000.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "AUDIT_RETRY_ATTEMPTS",
+          "description": "Number of retry attempts on transient failures. Defaults to 3.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "AUDIT_HMAC_KEY",
+          "description": "Tenant secret used to HMAC-SHA256 PII and prompts locally before sending. Generate once per tenant (e.g. node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\") and keep it in your environment. The key never leaves your process. If unset, the MCP falls back to plain SHA-256 for backwards compatibility and logs a one-time deprecation warning; set this to switch to keyed hashing, which regulators (ICO/EDPB) expect for pseudonymisation.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

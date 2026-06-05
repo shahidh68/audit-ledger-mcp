@@ -33,6 +33,10 @@ import {
   verifyDecisionToolDefinition,
 } from "./tools/verify_decision.js";
 import {
+  executeVerifyCompleteness,
+  verifyCompletenessToolDefinition,
+} from "./tools/verify_completeness.js";
+import {
   executeListDecisions,
   listDecisionsToolDefinition,
 } from "./tools/list_decisions.js";
@@ -95,6 +99,7 @@ async function main(): Promise<void> {
     tools: [
       recordDecisionToolDefinition,
       verifyDecisionToolDefinition,
+      verifyCompletenessToolDefinition,
       listDecisionsToolDefinition,
     ],
   }));
@@ -109,6 +114,9 @@ async function main(): Promise<void> {
           break;
         case "verify_decision":
           result = await executeVerifyDecision(client, args);
+          break;
+        case "verify_completeness":
+          result = await executeVerifyCompleteness(client, args);
           break;
         case "list_decisions":
           result = await executeListDecisions(client, args);

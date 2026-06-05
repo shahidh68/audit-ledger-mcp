@@ -122,12 +122,15 @@ Edit your `claude_desktop_config.json` (macOS: `~/Library/Application Support/Cl
       "env": {
         "AUDIT_API_URL": "https://<api-id>.execute-api.<region>.amazonaws.com/prod",
         "AUDIT_WRITE_KEY": "<your-tenant-write-key>",
-        "AUDIT_READ_KEY": "<your-tenant-read-key>"
+        "AUDIT_READ_KEY": "<your-tenant-read-key>",
+        "AUDIT_HMAC_KEY": "<your-tenant-hmac-secret>"
       }
     }
   }
 }
 ```
+
+`AUDIT_HMAC_KEY` is the tenant secret used to keyed-hash PII locally before any payload leaves the MCP server process. Generate it once with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and store the result in the `env` block above. The MCP never transmits this value, only reads it.
 
 Restart Claude Desktop. You'll see "audit-ledger" in the MCP tools menu. Ask Claude something like *"Record this decision: I declined the application because…"* and watch it call `record_decision` automatically.
 
@@ -144,7 +147,8 @@ In Cursor settings → MCP → add server:
       "env": {
         "AUDIT_API_URL": "https://<api-id>.execute-api.<region>.amazonaws.com/prod",
         "AUDIT_WRITE_KEY": "<your-tenant-write-key>",
-        "AUDIT_READ_KEY": "<your-tenant-read-key>"
+        "AUDIT_READ_KEY": "<your-tenant-read-key>",
+        "AUDIT_HMAC_KEY": "<your-tenant-hmac-secret>"
       }
     }
   }
@@ -167,9 +171,10 @@ client = MultiServerMCPClient({
         "args": ["-y", "audit-ledger-mcp"],
         "transport": "stdio",
         "env": {
-            "AUDIT_API_URL": os.environ["AUDIT_API_URL"],
+            "AUDIT_API_URL":   os.environ["AUDIT_API_URL"],
             "AUDIT_WRITE_KEY": os.environ["AUDIT_WRITE_KEY"],
-            "AUDIT_READ_KEY": os.environ["AUDIT_READ_KEY"],
+            "AUDIT_READ_KEY":  os.environ["AUDIT_READ_KEY"],
+            "AUDIT_HMAC_KEY":  os.environ["AUDIT_HMAC_KEY"],
         },
     }
 })
@@ -180,7 +185,7 @@ agent = create_react_agent(
     tools,
 )
 
-# The agent can now call record_decision, verify_decision, list_decisions
+# The agent can now call record_decision, verify_decision, verify_completeness, list_decisions
 result = await agent.ainvoke({
     "messages": [{"role": "user", "content": "Triage this loan application…"}]
 })
@@ -189,7 +194,7 @@ result = await agent.ainvoke({
 ### Custom client (raw MCP)
 
 ```bash
-AUDIT_API_URL=... AUDIT_WRITE_KEY=... npx -y audit-ledger-mcp
+AUDIT_API_URL=... AUDIT_WRITE_KEY=... AUDIT_READ_KEY=... AUDIT_HMAC_KEY=... npx -y audit-ledger-mcp
 ```
 
 The server speaks MCP over stdio. Send `initialize`, `tools/list`, and `tools/call` requests per the [MCP specification](https://modelcontextprotocol.io/specification).

@@ -95,8 +95,8 @@ async function sleep(ms: number): Promise<void> {
 async function pollVerify(
   client: Client,
   eventId: string,
-  attempts = 6,
-  intervalMs = 1500,
+  attempts = 10,
+  intervalMs = 2000,
 ): Promise<unknown> {
   let last: unknown;
   for (let i = 0; i < attempts; i++) {
@@ -105,11 +105,24 @@ async function pollVerify(
         name: "verify_decision",
         arguments: { event_id: eventId },
       });
-      return parseToolResult(result);
+      const parsed = parseToolResult(result) as {
+        integrity_verified?: boolean;
+        integrity_note?: string;
+        archived_record?: unknown;
+      };
+      // Retry when the S3 archive copy is still propagating (the API returns
+      // integrity_verified=false with a "may still be processing" note in that
+      // case). Otherwise return whatever we got.
+      const archiveNotReady =
+        parsed.archived_record == null &&
+        typeof parsed.integrity_note === "string" &&
+        /still be processing/i.test(parsed.integrity_note);
+      if (!archiveNotReady) return parsed;
+      last = new Error(parsed.integrity_note ?? "archive not yet present");
     } catch (e) {
       last = e;
-      if (i < attempts - 1) await sleep(intervalMs);
     }
+    if (i < attempts - 1) await sleep(intervalMs);
   }
   throw last instanceof Error
     ? last
@@ -154,12 +167,12 @@ async function main(): Promise<void> {
     try {
       const { tools } = await client.listTools();
       toolNames = tools.map((t) => t.name);
-      const expected = ["record_decision", "verify_decision", "list_decisions"];
+      const expected = ["record_decision", "verify_decision", "verify_completeness", "list_decisions"];
       const missing = expected.filter((n) => !toolNames.includes(n));
       if (missing.length > 0) {
         fail(`Tools missing from listing: ${missing.join(", ")}`, new Error("incomplete tool list"));
       } else {
-        ok("All three tools advertised", toolNames.join(", "));
+        ok("All four tools advertised", toolNames.join(", "));
       }
     } catch (e) {
       fail("listTools failed", e);
@@ -206,15 +219,67 @@ async function main(): Promise<void> {
       try {
         const result = await pollVerify(client, eventId) as {
           integrity_verified: boolean;
-          note: string;
+          integrity_note: string;
+          current_record: unknown;
+          archived_record: unknown;
         };
         if (result.integrity_verified === true) {
           ok("Tamper-check passed", "DynamoDB and S3 copies match");
         } else {
-          fail("Tamper-check returned false", new Error(result.note ?? "no note"));
+          fail("Tamper-check returned false", new Error(result.integrity_note ?? "no note"));
+        }
+        // v0.3.1: confirm the field-name fix is live (these used to come back undefined)
+        if (typeof result.integrity_note === "string" && result.integrity_note.length > 0) {
+          ok("Tamper-check response includes integrity_note", result.integrity_note);
+        } else {
+          fail("integrity_note missing from verify_decision response (regression of 0.3.1 fix)", new Error("undefined integrity_note"));
+        }
+        if (result.current_record && typeof result.current_record === "object") {
+          ok("Tamper-check response includes current_record");
+        } else {
+          fail("current_record missing from verify_decision response (regression of 0.3.1 fix)", new Error("undefined current_record"));
+        }
+        if (result.archived_record && typeof result.archived_record === "object") {
+          ok("Tamper-check response includes archived_record");
+        } else {
+          fail("archived_record missing from verify_decision response (regression of 0.3.1 fix)", new Error("undefined archived_record"));
+        }
+        // v0.3: archived record should carry sequence_no since the processor stamps it
+        const seq = (result.archived_record as { sequence_no?: unknown }).sequence_no;
+        if (typeof seq === "number" && seq >= 1) {
+          ok(`Archived record has sequence_no=${seq}`);
+        } else {
+          fail("Archived record missing sequence_no (regression of v0.3 sequence allocation)", new Error(`sequence_no was ${String(seq)}`));
         }
       } catch (e) {
         fail("verify_decision failed after retries", e);
+      }
+    }
+
+    // 4b. verify_completeness — new in v0.3
+    step("Call verify_completeness (v0.3)");
+    if (!recorded) {
+      console.log(`  ${C.yellow}SKIP${C.reset}  No record was created — cannot verify completeness`);
+    } else {
+      try {
+        const raw = await client.callTool({
+          name: "verify_completeness",
+          arguments: {},
+        });
+        const result = parseToolResult(raw) as {
+          tenant_id: string;
+          range: { from: number; to: number };
+          expected_count: number;
+          found_count: number;
+          missing: number[];
+        };
+        if (typeof result.range?.to === "number" && result.range.to >= 1) {
+          ok(`verify_completeness returned counter=${result.range.to}, found=${result.found_count}, missing=${result.missing.length}`);
+        } else {
+          fail("verify_completeness response shape unexpected", new Error(JSON.stringify(result).slice(0, 200)));
+        }
+      } catch (e) {
+        fail("verify_completeness failed", e);
       }
     }
 

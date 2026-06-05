@@ -38,10 +38,16 @@ export interface DecisionRecord {
 }
 
 export interface TamperCheckResult {
+  /** Event ID echoed back by the API. */
+  event_id: string;
+  /** True when the DynamoDB and S3 copies of the record are byte-identical after canonical serialisation. */
   integrity_verified: boolean;
-  note: string;
-  dynamodb_record: DecisionRecord;
-  s3_record: DecisionRecord;
+  /** Human-readable explanation of the integrity result. */
+  integrity_note: string;
+  /** The record as currently held in DynamoDB. */
+  current_record: DecisionRecord;
+  /** The record as written to S3 Object Lock (the immutable archive). */
+  archived_record: DecisionRecord;
 }
 
 export interface CompletenessResult {

@@ -44,6 +44,17 @@ export interface TamperCheckResult {
   s3_record: DecisionRecord;
 }
 
+export interface CompletenessResult {
+  tenant_id: string;
+  range: { from: number; to: number };
+  expected_count: number;
+  found_count: number;
+  /** Sequence numbers issued by the ledger that are no longer present. */
+  missing: number[];
+  /** Human-readable summary. Distinguishes empty tenant, all-present, gaps. */
+  note: string;
+}
+
 export class AuditLedgerClient {
   private readonly apiUrl: string;
   private readonly writeKey?: string;
@@ -100,6 +111,34 @@ export class AuditLedgerClient {
       );
     }
     return (await res.json()) as TamperCheckResult;
+  }
+
+  async verifyCompleteness(opts: {
+    from?: number;
+    to?: number;
+    /** Required only when caller holds the admin read key; ignored otherwise. */
+    tenantId?: string;
+  } = {}): Promise<CompletenessResult> {
+    if (!this.readKey) {
+      throw new AuditLedgerError("AUDIT_READ_KEY is not set — verify_completeness unavailable");
+    }
+    const params = new URLSearchParams();
+    if (typeof opts.from === "number") params.set("from", String(opts.from));
+    if (typeof opts.to   === "number") params.set("to",   String(opts.to));
+    if (opts.tenantId) params.set("tenant_id", opts.tenantId);
+    const url = `${this.apiUrl}/audit/verify-completeness${params.toString() ? `?${params}` : ""}`;
+    const res = await this.fetchWithRetry(url, {
+      method: "GET",
+      headers: { "Accept": "application/json", "x-api-key": this.readKey },
+    });
+    if (res.status !== 200) {
+      throw new AuditLedgerError(
+        `verify_completeness failed: HTTP ${res.status}`,
+        res.status,
+        await safeText(res),
+      );
+    }
+    return (await res.json()) as CompletenessResult;
   }
 
   async listDecisions(opts: { from?: string; to?: string }): Promise<DecisionRecord[]> {

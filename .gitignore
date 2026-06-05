@@ -42,3 +42,7 @@ ehthumbs.db
 secrets/
 *.pem
 *.key
+
+# MCP registry publisher binary — install locally, do not commit
+mcp-publisher
+mcp-publisher.exe

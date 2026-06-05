@@ -73,7 +73,7 @@ When sandbox mode is active, you'll see a banner on stderr:
 }
 ```
 
-Restart Claude Desktop. The three tools appear in the MCP menu immediately. Try asking Claude to "record this decision: should X be approved?" and watch a record land in the sandbox dashboard.
+Restart Claude Desktop. The four tools appear in the MCP menu immediately. Try asking Claude to "record this decision: should X be approved?" and watch a record land in the sandbox dashboard.
 
 ---
 
@@ -85,7 +85,7 @@ For real workloads, deploy your own audit ledger and point the MCP server at it:
 npm install -g audit-ledger-mcp
 ```
 
-Configure with **all three** env vars (any of them being set switches off sandbox mode):
+Configure with the API URL plus your tenant keys (any of them being set switches off sandbox mode). `AUDIT_HMAC_KEY` is technically optional for backwards compatibility but strongly recommended — see the note above the value below:
 
 ```bash
 export AUDIT_API_URL="https://<api-id>.execute-api.<region>.amazonaws.com/prod"
@@ -180,7 +180,7 @@ agent = create_react_agent(
     tools,
 )
 
-# The agent can now call record_decision, verify_decision, list_decisions
+# The agent can now call record_decision, verify_decision, verify_completeness, list_decisions
 result = await agent.ainvoke({
     "messages": [{"role": "user", "content": "Triage this loan application…"}]
 })

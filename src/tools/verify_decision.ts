@@ -37,17 +37,17 @@ export async function executeVerifyDecision(
 ): Promise<{
   event_id: string;
   integrity_verified: boolean;
-  note: string;
-  dynamodb_record: unknown;
-  s3_record: unknown;
+  integrity_note: string;
+  current_record: unknown;
+  archived_record: unknown;
 }> {
   const input = verifyDecisionInputSchema.parse(rawInput);
   const result = await client.verifyDecision(input.event_id);
   return {
     event_id: input.event_id,
     integrity_verified: result.integrity_verified,
-    note: result.note,
-    dynamodb_record: result.dynamodb_record,
-    s3_record: result.s3_record,
+    integrity_note: result.integrity_note,
+    current_record: result.current_record,
+    archived_record: result.archived_record,
   };
 }

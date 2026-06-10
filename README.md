@@ -6,6 +6,14 @@ Built for teams shipping AI in regulated contexts: EU AI Act Article 12 logging,
 
 [![npm](https://img.shields.io/npm/v/audit-ledger-mcp.svg)](https://www.npmjs.com/package/audit-ledger-mcp) [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE) [![MCP](https://img.shields.io/badge/MCP-compatible-7c3aed.svg)](https://modelcontextprotocol.io)
 
+> **The AI Audit Ledger family.** This MCP server *writes* decisions to the
+> [ledger](https://github.com/shahidh68/audit-ledger) (what happened, tamper-evident). The
+> [**AI Decision Evidence Hub**](https://github.com/shahidh68/evidence-hub) sits *above* it
+> (read-only) and proves *audit-readiness* — what evidence each decision has, what's missing,
+> who owns each gap, and a 0–100 score. Family:
+> [audit-ledger](https://github.com/shahidh68/audit-ledger) · **audit-ledger-mcp** ·
+> [evidence-hub](https://github.com/shahidh68/evidence-hub).
+
 **[Try the live dashboard →](https://d2pfirb2397ixy.cloudfront.net/?demo=1)** &nbsp;&middot;&nbsp; 30 synthetic decisions written via this MCP server, queryable and verifiable.
 
 <p align="center">

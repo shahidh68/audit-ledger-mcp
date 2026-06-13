@@ -312,6 +312,33 @@ List recent decisions for the calling tenant.
 
 ---
 
+## Companion: AI Decision Evidence Hub
+
+This MCP server **writes** decisions to the ledger — the immutable record of *what
+happened*. The **[AI Decision Evidence Hub](https://github.com/shahidh68/evidence-hub)**
+is the read-only layer **above** the ledger that answers the next question an auditor
+asks: *is each decision audit-ready?*
+
+For every recorded decision it produces:
+
+- an **audit-readiness score (0–100)** across nine evidence categories (model, data,
+  policy, human review, monitoring, prompt, integrity, retention, decision);
+- exactly **what evidence is present vs missing**, and **who owns** each gap;
+- an exportable, per-decision **audit pack** for regulators;
+- a dashboard (cross-linked with the ledger's), plus a manifest-based resolver that
+  auto-fills static evidence.
+
+It reads the ledger over its API and never modifies a record. Serverless on AWS
+(Lambda + DynamoDB). See its
+[Customer Guide](https://github.com/shahidh68/evidence-hub/blob/master/docs/CUSTOMER-GUIDE.md)
+and [Admin Runbook](https://github.com/shahidh68/evidence-hub/blob/master/docs/ADMIN-RUNBOOK.md).
+
+**The family:** [audit-ledger](https://github.com/shahidh68/audit-ledger) (what happened) ·
+**audit-ledger-mcp** (this server — how agents write decisions) ·
+[evidence-hub](https://github.com/shahidh68/evidence-hub) (audit-readiness).
+
+---
+
 ## Development
 
 ```bash
@@ -329,6 +356,7 @@ The server is TypeScript on Node 20+, ESM, stdio transport, using `@modelcontext
 ## Related
 
 - **[shahidh68/audit-ledger](https://github.com/shahidh68/audit-ledger)** — the AWS infrastructure this server talks to. CDK stack, Python and Node SDKs, compliance dashboard, full architecture documentation.
+- **[shahidh68/evidence-hub](https://github.com/shahidh68/evidence-hub)** — the AI Decision Evidence Hub: the read-only audit-readiness layer above the ledger. Scores each decision's evidence, tracks gaps and owners, and generates audit packs. ([Customer Guide](https://github.com/shahidh68/evidence-hub/blob/master/docs/CUSTOMER-GUIDE.md) · [Admin Runbook](https://github.com/shahidh68/evidence-hub/blob/master/docs/ADMIN-RUNBOOK.md))
 
 ---
 

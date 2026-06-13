@@ -1,16 +1,18 @@
 # audit-ledger-mcp
 
-**MCP server for the [AI Audit Ledger](https://github.com/shahidh68/audit-ledger).** Lets any AI agent — Claude Desktop, Cursor, LangGraph, custom — record decisions to a tamper-evident audit trail with one line of config.
+**Connect Claude, Cursor, LangGraph, or your own agent to the [AI Audit Ledger](https://github.com/shahidh68/audit-ledger).** This MCP server gives an agent the tools to record, check, and list decisions in a tamper-evident log with one line of config.
 
-Built for teams shipping AI in regulated contexts: EU AI Act Article 12 logging, FCA SS1/23 model risk evidence, GDPR data minimisation. Personal data is hashed locally before any payload leaves the server — the ledger only ever sees fingerprints.
+It is built for teams that need a clear record of AI decisions: EU AI Act Article 12 logging, FCA SS1/23 model risk evidence, and GDPR data minimisation. Raw personal data is hashed locally before anything is sent, so the ledger only sees fingerprints.
 
 [![npm](https://img.shields.io/npm/v/audit-ledger-mcp.svg)](https://www.npmjs.com/package/audit-ledger-mcp) [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE) [![MCP](https://img.shields.io/badge/MCP-compatible-7c3aed.svg)](https://modelcontextprotocol.io)
 
-> **The AI Audit Ledger family.** This MCP server *writes* decisions to the
-> [ledger](https://github.com/shahidh68/audit-ledger) (what happened, tamper-evident). The
-> [**AI Decision Evidence Hub**](https://github.com/shahidh68/evidence-hub) sits *above* it
-> (read-only) and proves *audit-readiness* — what evidence each decision has, what's missing,
-> who owns each gap, and a 0–100 score. Family:
+> **The AI Audit Ledger family.** This MCP server writes decisions to the
+> [ledger](https://github.com/shahidh68/audit-ledger), which proves what happened
+> and whether the record was changed. The
+> [**AI Decision Evidence Hub**](https://github.com/shahidh68/evidence-hub) sits
+> above the ledger, read-only. It turns each lightweight decision record into an
+> audit case file by showing what evidence is present, what is still missing, who
+> owns each gap, and the current readiness score. Family:
 > [audit-ledger](https://github.com/shahidh68/audit-ledger) · **audit-ledger-mcp** ·
 > [evidence-hub](https://github.com/shahidh68/evidence-hub).
 
@@ -316,20 +318,25 @@ List recent decisions for the calling tenant.
 
 This MCP server **writes** decisions to the ledger — the immutable record of *what
 happened*. The **[AI Decision Evidence Hub](https://github.com/shahidh68/evidence-hub)**
-is the read-only layer **above** the ledger that answers the next question an auditor
-asks: *is each decision audit-ready?*
+is the read-only workbench above the ledger. It answers the next question an
+auditor asks: *the decision is recorded, but is the evidence complete enough to
+review?*
 
 For every recorded decision it produces:
 
 - an **audit-readiness score (0–100)** across nine evidence categories (model, data,
   policy, human review, monitoring, prompt, integrity, retention, decision);
-- exactly **what evidence is present vs missing**, and **who owns** each gap;
-- an exportable, per-decision **audit pack** for regulators;
+- exactly **what evidence is present vs missing**, and **who owns** each expected
+  gap;
+- a per-decision **audit pack** that can be printed, saved as PDF, or downloaded
+  as JSON;
 - a dashboard (cross-linked with the ledger's), plus a manifest-based resolver that
   auto-fills static evidence.
 
-It reads the ledger over its API and never modifies a record. Serverless on AWS
-(Lambda + DynamoDB). See its
+Open gaps are normal. The ledger keeps the decision record small and
+tamper-evident; Evidence Hub shows the follow-up evidence needed to make that
+decision audit-ready. It reads the ledger over its API and never modifies a
+record. Serverless on AWS (Lambda + DynamoDB). See its
 [Customer Guide](https://github.com/shahidh68/evidence-hub/blob/master/docs/CUSTOMER-GUIDE.md)
 and [Admin Runbook](https://github.com/shahidh68/evidence-hub/blob/master/docs/ADMIN-RUNBOOK.md).
 
@@ -356,7 +363,7 @@ The server is TypeScript on Node 20+, ESM, stdio transport, using `@modelcontext
 ## Related
 
 - **[shahidh68/audit-ledger](https://github.com/shahidh68/audit-ledger)** — the AWS infrastructure this server talks to. CDK stack, Python and Node SDKs, compliance dashboard, full architecture documentation.
-- **[shahidh68/evidence-hub](https://github.com/shahidh68/evidence-hub)** — the AI Decision Evidence Hub: the read-only audit-readiness layer above the ledger. Scores each decision's evidence, tracks gaps and owners, and generates audit packs. ([Customer Guide](https://github.com/shahidh68/evidence-hub/blob/master/docs/CUSTOMER-GUIDE.md) · [Admin Runbook](https://github.com/shahidh68/evidence-hub/blob/master/docs/ADMIN-RUNBOOK.md))
+- **[shahidh68/evidence-hub](https://github.com/shahidh68/evidence-hub)** — the audit workbench above the ledger. It scores each decision's evidence, treats open gaps as expected follow-up work, and generates printable/downloadable audit packs. ([Customer Guide](https://github.com/shahidh68/evidence-hub/blob/master/docs/CUSTOMER-GUIDE.md) · [Admin Runbook](https://github.com/shahidh68/evidence-hub/blob/master/docs/ADMIN-RUNBOOK.md))
 
 ---
 
